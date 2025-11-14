@@ -6,12 +6,18 @@ using UnityEngine.UI;
 public class PollinationsAI : MonoBehaviour
 {
     [Header("UI References")]
-    public Image outputImage;  // UI Image instead of Renderer
+    public Image[] outputImage;  // UI Image instead of Renderer
+    public int counter = 0;
 
     private void Start()
     {
         // Example usage
-        GenerateImage("A cute loli");
+        //GenerateImage("Moonlight loli");
+        //GenerateImage("China dress loli");
+        //GenerateImage("Cosmos loli");
+        //GenerateImage("School uniform loli");
+        //GenerateImage("Cat girl loli");
+        //GenerateImage("Barista loli");
     }
 
     public void GenerateImage(string prompt)
@@ -21,6 +27,25 @@ public class PollinationsAI : MonoBehaviour
 
     private IEnumerator GenerateImageCoroutine(string prompt)
     {
+        string testUrl = "https://image.pollinations.ai/";
+        using (UnityWebRequest testRequest = UnityWebRequest.Head(testUrl))
+        {
+            yield return testRequest.SendWebRequest();
+
+            if (testRequest.result != UnityWebRequest.Result.Success)
+            {
+                Debug.LogError($"Cannot reach server: {testRequest.error}");
+                yield break;
+            }
+            else
+            {
+                Debug.Log("Successfully connected to server");
+            }
+        }
+
+        Debug.Log("----------------------");
+
+
         // Format the API URL with your prompt
         string apiUrl = $"https://image.pollinations.ai/prompt/{UnityWebRequest.EscapeURL(prompt)}?width=1920&height=1080";
 
@@ -40,10 +65,12 @@ public class PollinationsAI : MonoBehaviour
                 );
 
                 // Apply to UI Image
-                outputImage.sprite = sprite;
+                outputImage[counter].sprite = sprite;
 
                 // Optional: Adjust image size to match texture dimensions
-                outputImage.SetNativeSize();
+                outputImage[counter].SetNativeSize();
+
+                counter++;
             }
             else
             {

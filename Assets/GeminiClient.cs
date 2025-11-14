@@ -8,10 +8,13 @@ using TMPro;
 public class GeminiClient : MonoBehaviour
 {
     public TMP_Text outputText;
+    public PollinationsAI pollinationsAI;
+    int textIndex = 0;
 
     // Replace with your actual API key
     private string apiKey = "AIzaSyAWmxgOX0F_-ie-bJ_gkhJfSB2jEJs4xwM";
     private string endpoint = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
+    public string[] imagePrompt;
 
     [Serializable]
     public class GeminiRequest
@@ -90,10 +93,40 @@ public class GeminiClient : MonoBehaviour
                 {
                     string result = resp.candidates[0].content.parts[0].text;
                     Debug.Log("Result text: " + result);
-                    outputText.GetComponent<TextMeshProUGUI>().text = result;
-                    // Do something with the result...
+
+                    // Split result and send to Pollinations
+                    imagePrompt = result.Split(';');
+
+                    //outputText.GetComponent<TextMeshProUGUI>().text = result;
+                    outputText.GetComponent<TextMeshProUGUI>().text = imagePrompt[0];
+
+                    // Might need to put http timeout in between requests
+                    for (int i = 0; i < 5; i++)
+                    {
+                        pollinationsAI.GenerateImage(imagePrompt[i]);
+                    }
+                    
                 }
             }
+        }
+    }
+
+    public void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.O))
+        {
+            if (textIndex > 0)
+                textIndex--;
+
+            outputText.GetComponent<TextMeshProUGUI>().text = imagePrompt[textIndex];
+        }
+
+        if (Input.GetKeyDown(KeyCode.P))
+        {
+            if (textIndex < imagePrompt.Length - 1)
+                textIndex++;
+
+            outputText.GetComponent<TextMeshProUGUI>().text = imagePrompt[textIndex];
         }
     }
 }
