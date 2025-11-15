@@ -7,9 +7,9 @@ using UnityEngine.UI;
 public class PollinationsAI : MonoBehaviour
 {
     [Header("UI References")]
-    public Image[] outputImage;  // UI Image instead of Renderer
+    public Image[] outputImage;
     public int counter = 0;
-    public List<Sprite> spriteBank; // bank to store all the images generated from Pollination
+    public List<Sprite> spriteBank;
 
     [Header("Settings")]
     [Tooltip("Image width for generation")]
@@ -17,6 +17,16 @@ public class PollinationsAI : MonoBehaviour
 
     [Tooltip("Image height for generation")]
     public int imageHeight = 1080;
+
+    [Header("Retry Settings")]
+    [Tooltip("Number of retry attempts before giving up")]
+    public int maxRetries = 3;
+
+    [Tooltip("Delay in seconds between retry attempts")]
+    public float retryDelay = 2f;
+
+    [Tooltip("Increase delay after each retry (exponential backoff)")]
+    public bool useExponentialBackoff = true;
 
     private void Start()
     {
@@ -32,19 +42,67 @@ public class PollinationsAI : MonoBehaviour
     }
 
     /// <summary>
-    /// Made public so it can be yielded from other coroutines
-    /// This allows sequential generation with yield return
+    /// Generate image with automatic retry on failure
     /// </summary>
     public IEnumerator GenerateImageCoroutine(string prompt)
     {
-        // Format the API URL with your prompt
+        int attemptCount = 0;
+        bool success = false;
+        Sprite generatedSprite = null;
+
+        // Try up to maxRetries times
+        while (attemptCount < maxRetries && !success)
+        {
+            attemptCount++;
+
+            if (attemptCount > 1)
+            {
+                Debug.Log($"Retry attempt {attemptCount}/{maxRetries} for: {prompt}");
+            }
+
+            // Attempt to generate image
+            yield return StartCoroutine(AttemptImageGeneration(prompt, (sprite) =>
+            {
+                generatedSprite = sprite;
+                success = (sprite != null);
+            }));
+
+            // If failed and we have retries left, wait before trying again
+            if (!success && attemptCount < maxRetries)
+            {
+                float delay = useExponentialBackoff
+                    ? retryDelay * attemptCount  // 2s, 4s, 6s...
+                    : retryDelay;                 // 2s, 2s, 2s...
+
+                Debug.Log($"Waiting {delay}s before retry...");
+                yield return new WaitForSeconds(delay);
+            }
+        }
+
+        // Add the result (either sprite or null) to the bank
+        spriteBank.Add(generatedSprite);
+
+        if (success)
+        {
+            Debug.Log($"Image generated successfully after {attemptCount} attempt(s)! Total images: {spriteBank.Count}");
+        }
+        else
+        {
+            Debug.LogWarning($"Failed to generate image after {maxRetries} attempts. Adding null placeholder.");
+        }
+    }
+
+    /// <summary>
+    /// Single attempt to generate an image
+    /// </summary>
+    private IEnumerator AttemptImageGeneration(string prompt, System.Action<Sprite> callback)
+    {
         string apiUrl = $"https://image.pollinations.ai/prompt/{UnityWebRequest.EscapeURL(prompt)}?width={imageWidth}&height={imageHeight}";
 
         Debug.Log($"Requesting image from Pollinations: {prompt}");
 
         using (UnityWebRequest webRequest = UnityWebRequestTexture.GetTexture(apiUrl))
         {
-            // Send the request and wait for it to complete
             yield return webRequest.SendWebRequest();
 
             if (webRequest.result == UnityWebRequest.Result.Success)
@@ -55,19 +113,17 @@ public class PollinationsAI : MonoBehaviour
                 Sprite sprite = Sprite.Create(
                     texture,
                     new Rect(0, 0, texture.width, texture.height),
-                    new Vector2(0.5f, 0.5f)  // Center pivot
+                    new Vector2(0.5f, 0.5f)
                 );
 
-                spriteBank.Add(sprite);
-                Debug.Log($"Image generated successfully! Total images: {spriteBank.Count}");
+                callback(sprite);
             }
             else
             {
                 Debug.LogError($"Error generating image: {webRequest.error}");
                 Debug.LogError($"Response code: {webRequest.responseCode}");
 
-                // Add a null sprite as placeholder so indices stay aligned
-                spriteBank.Add(null);
+                callback(null);
             }
         }
     }

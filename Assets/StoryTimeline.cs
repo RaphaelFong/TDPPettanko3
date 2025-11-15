@@ -230,7 +230,7 @@ public class StoryTimeline : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
                     if (snippet.Length > 50)
                         snippet = snippet.Substring(0, 50) + "...";
 
-                    previewText.text = $"Part {hoverIndex + 1}/{totalParagraphs}\n{snippet}";
+                    //previewText.text = $"Part {hoverIndex + 1}/{totalParagraphs}\n{snippet}";
                 }
             }
 

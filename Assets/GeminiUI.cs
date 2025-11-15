@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using static UnityEditor.Experimental.GraphView.GraphView;
 
 
 public class GeminiUI : MonoBehaviour
@@ -119,6 +118,8 @@ public class GeminiUI : MonoBehaviour
             Debug.Log("View Settings:");
             Debug.Log("toneLayer : " + toneLayer);
             Debug.Log("creatureAndMagicLayer : " + creatureAndMagicLayer);
+
+            LoadingScreen.SetServerMessage("Sending Prompt to Gemini..");
 
             gemini.SendPrompt(contextLayer + instructionLayer + toneLayer + additionalDescription + creatureAndMagicLayer + end);
         }

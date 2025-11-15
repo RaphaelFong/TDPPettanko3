@@ -93,12 +93,15 @@ public class GeminiClient : MonoBehaviour
             if (www.result != UnityWebRequest.Result.Success)
             {
                 Debug.LogError("Gemini API Error: " + www.error + " – " + www.downloadHandler.text);
+                LoadingScreen.SetServerMessage("Gemini API Error: " + www.error + " – " + www.downloadHandler.text);
                 LoadingScreen.Hide();
             }
             else
             {
                 string responseText = www.downloadHandler.text;
                 Debug.Log("Gemini response: " + responseText);
+                LoadingScreen.SetServerMessage("Gemini response: " + responseText);
+
 
                 // Parse JSON
                 GeminiResponse resp = JsonUtility.FromJson<GeminiResponse>(responseText);
@@ -133,10 +136,12 @@ public class GeminiClient : MonoBehaviour
     private IEnumerator GenerateImagesSequentially()
     {
         Debug.Log($"Starting to generate {imagePrompt.Length} images sequentially...");
+        LoadingScreen.SetServerMessage($"Starting to generate {imagePrompt.Length} images sequentially...");
 
         for (int i = 0; i < imagePrompt.Length; i++)
         {
             Debug.Log($"Generating image {i + 1}/{imagePrompt.Length}: {imagePrompt[i]}");
+            LoadingScreen.SetServerMessage($"Generating image {i + 1}/{imagePrompt.Length}");
 
             // Start generating this image
             yield return StartCoroutine(pollinationsAI.GenerateImageCoroutine(imagePrompt[i]));
@@ -145,11 +150,14 @@ public class GeminiClient : MonoBehaviour
             if (i < imagePrompt.Length - 1)
             {
                 Debug.Log($"Waiting {delayBetweenImages} seconds before next image...");
+                LoadingScreen.SetServerMessage($"Waiting {delayBetweenImages} seconds before next image...");
+
                 yield return new WaitForSeconds(delayBetweenImages);
             }
         }
 
         Debug.Log("All images generated successfully!");
+        LoadingScreen.SetServerMessage("All images generated successfully!");
 
         // Display the first image once all are loaded
         if (pollinationsAI.spriteBank.Count > 0)
@@ -205,7 +213,7 @@ public class GeminiClient : MonoBehaviour
             return;
 
         // Previous chapter (O key)
-        if (Input.GetKeyDown(KeyCode.O))
+        if (Input.GetKeyDown(KeyCode.LeftArrow))
         {
             if (textIndex > 0)
             {
@@ -215,7 +223,7 @@ public class GeminiClient : MonoBehaviour
         }
 
         // Next chapter (P key)
-        if (Input.GetKeyDown(KeyCode.P))
+        if (Input.GetKeyDown(KeyCode.RightArrow))
         {
             if (textIndex < imagePrompt.Length - 1)
             {

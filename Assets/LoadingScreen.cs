@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.Video;
 
@@ -7,6 +8,7 @@ public class LoadingScreen : MonoBehaviour
     public GameObject loadingPanel; // The entire loading screen UI
     public VideoPlayer loadingVideo; // Video player component
     public AudioSource loadingAudio; // Audio source component
+    public TMP_Text serverMessage;
 
     [Header("Settings")]
     public bool loopVideo = true;
@@ -31,6 +33,14 @@ public class LoadingScreen : MonoBehaviour
     {
         // Start hidden
         Hide();
+    }
+
+    public static void SetServerMessage(string message)
+    {
+        if (instance != null && instance.serverMessage != null)
+        {
+            instance.serverMessage.text = message;
+        }
     }
 
     /// <summary>
