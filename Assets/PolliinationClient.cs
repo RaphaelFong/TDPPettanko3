@@ -16,11 +16,6 @@ public class PollinationsAI : MonoBehaviour
         spriteBank = new List<Sprite>();
         // Example usage
         //GenerateImage("Moonlight loli");
-        //GenerateImage("China dress loli");
-        //GenerateImage("Cosmos loli");
-        //GenerateImage("School uniform loli");
-        //GenerateImage("Cat girl loli");
-        //GenerateImage("Barista loli");
     }
 
     public void GenerateImage(string prompt)
@@ -28,27 +23,8 @@ public class PollinationsAI : MonoBehaviour
         StartCoroutine(GenerateImageCoroutine(prompt));
     }
 
-    private IEnumerator GenerateImageCoroutine(string prompt)
+    public IEnumerator GenerateImageCoroutine(string prompt)
     {
-        string testUrl = "https://image.pollinations.ai/";
-        using (UnityWebRequest testRequest = UnityWebRequest.Head(testUrl))
-        {
-            yield return testRequest.SendWebRequest();
-
-            if (testRequest.result != UnityWebRequest.Result.Success)
-            {
-                Debug.LogError($"Cannot reach server: {testRequest.error}");
-                yield break;
-            }
-            else
-            {
-                Debug.Log("Successfully connected to server");
-            }
-        }
-
-        Debug.Log("----------------------");
-
-
         // Format the API URL with your prompt
         string apiUrl = $"https://image.pollinations.ai/prompt/{UnityWebRequest.EscapeURL(prompt)}?width=1920&height=1080";
 
@@ -68,18 +44,14 @@ public class PollinationsAI : MonoBehaviour
                 );
 
                 spriteBank.Add(sprite);
-
-                //// Apply to UI Image
-                //outputImage[counter].sprite = sprite;
-
-                //// Optional: Adjust image size to match texture dimensions
-                //outputImage[counter].SetNativeSize();
-
-                //counter++;
             }
             else
             {
-                Debug.LogError($"Error: {webRequest.error}");
+                Debug.LogError($"Error generating image: {webRequest.error}");
+                Debug.LogError($"Response code: {webRequest.responseCode}");
+
+                // Add a null sprite as placeholder so indices stay aligned
+                spriteBank.Add(null);
             }
         }
     }

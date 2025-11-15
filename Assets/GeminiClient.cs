@@ -11,13 +11,18 @@ public class GeminiClient : MonoBehaviour
 {
     public TMP_Text outputText;
     public PollinationsAI pollinationsAI;
-    int textIndex = 0;
+    public int textIndex = 0;
     public GameObject imageObject;
 
     // Replace with your actual API key
     private string apiKey = "AIzaSyAWmxgOX0F_-ie-bJ_gkhJfSB2jEJs4xwM";
     private string endpoint = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
     public string[] imagePrompt;
+
+    [Header("Image Generation Settings")]
+    [Tooltip("Delay in seconds between each image generation to avoid rate limits")]
+    public float delayBetweenImages = 1.5f;
+    public bool isAllResourcesGenerated = false; // Check if all text/img are received from gemini and pollination 
 
     [Serializable]
     public class GeminiRequest
@@ -103,12 +108,11 @@ public class GeminiClient : MonoBehaviour
                     //outputText.GetComponent<TextMeshProUGUI>().text = result;
                     outputText.GetComponent<TextMeshProUGUI>().text = imagePrompt[0];
 
-                    //var obj = new GameObject();
-                    //var renderer = obj.AddComponent<SpriteRenderer>();
-                    //renderer.sprite = sprite;
+                    pollinationsAI.GenerateImage(imagePrompt[0]);
 
-                    // Might need to put http timeout in between requests
-                    //for (int i = 0; i < 5; i++)
+                    StartCoroutine(GenerateImagesSequentially());
+
+                    //for (int i = 0; i < imagePrompt.Length - 1; i++)
                     //{
                     //    pollinationsAI.GenerateImage(imagePrompt[i]);
                     //}
@@ -117,25 +121,60 @@ public class GeminiClient : MonoBehaviour
         }
     }
 
-    public void Update()
+    /// <summary>
+    /// Generates images one at a time with delays to avoid API rate limits
+    /// </summary>
+    private IEnumerator GenerateImagesSequentially()
     {
-        if (Input.GetKeyDown(KeyCode.O))
-        {
-            if (textIndex > 0)
-                textIndex--;
+        Debug.Log($"Starting to generate {imagePrompt.Length} images sequentially...");
 
-            outputText.GetComponent<TextMeshProUGUI>().text = imagePrompt[textIndex];
-            imageObject.GetComponent<Image>().sprite = pollinationsAI.spriteBank[textIndex];
-            
+        for (int i = 0; i < imagePrompt.Length; i++)
+        {
+            Debug.Log($"Generating image {i + 1}/{imagePrompt.Length}: {imagePrompt[i]}");
+
+            // Start generating this image
+            yield return StartCoroutine(pollinationsAI.GenerateImageCoroutine(imagePrompt[i]));
+
+            // Wait before generating the next one (except after the last image)
+            if (i < imagePrompt.Length - 1)
+            {
+                Debug.Log($"Waiting {delayBetweenImages} seconds before next image...");
+                yield return new WaitForSeconds(delayBetweenImages);
+            }
         }
 
-        if (Input.GetKeyDown(KeyCode.P))
-        {
-            if (textIndex < imagePrompt.Length - 1)
-                textIndex++;
+        Debug.Log("All images generated successfully!");
+        isAllResourcesGenerated = true;
 
-            outputText.GetComponent<TextMeshProUGUI>().text = imagePrompt[textIndex];
-            imageObject.GetComponent<Image>().sprite = pollinationsAI.spriteBank[textIndex];
+        // Display the first image once all are loaded
+        if (pollinationsAI.spriteBank.Count > 0)
+        {
+            imageObject.GetComponent<Image>().sprite = pollinationsAI.spriteBank[0];
+        }
+    }
+
+    public void Update()    
+    {
+        if (isAllResourcesGenerated)
+        {
+            if (Input.GetKeyDown(KeyCode.O))
+            {
+                if (textIndex > 0)
+                    textIndex--;
+
+                outputText.GetComponent<TextMeshProUGUI>().text = imagePrompt[textIndex];
+                imageObject.GetComponent<Image>().sprite = pollinationsAI.spriteBank[textIndex];
+
+            }
+
+            if (Input.GetKeyDown(KeyCode.P))
+            {
+                if (textIndex < imagePrompt.Length - 1)
+                    textIndex++;
+
+                outputText.GetComponent<TextMeshProUGUI>().text = imagePrompt[textIndex];
+                imageObject.GetComponent<Image>().sprite = pollinationsAI.spriteBank[textIndex];
+            }
         }
     }
 }
