@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.UI;
@@ -8,9 +9,11 @@ public class PollinationsAI : MonoBehaviour
     [Header("UI References")]
     public Image[] outputImage;  // UI Image instead of Renderer
     public int counter = 0;
+    public List<Sprite> spriteBank; // bank to store all the images generated from Pollination
 
     private void Start()
     {
+        spriteBank = new List<Sprite>();
         // Example usage
         //GenerateImage("Moonlight loli");
         //GenerateImage("China dress loli");
@@ -64,13 +67,15 @@ public class PollinationsAI : MonoBehaviour
                     new Vector2(0.5f, 0.5f)  // Center pivot
                 );
 
-                // Apply to UI Image
-                outputImage[counter].sprite = sprite;
+                spriteBank.Add(sprite);
 
-                // Optional: Adjust image size to match texture dimensions
-                outputImage[counter].SetNativeSize();
+                //// Apply to UI Image
+                //outputImage[counter].sprite = sprite;
 
-                counter++;
+                //// Optional: Adjust image size to match texture dimensions
+                //outputImage[counter].SetNativeSize();
+
+                //counter++;
             }
             else
             {

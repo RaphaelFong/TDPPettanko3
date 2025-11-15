@@ -4,12 +4,15 @@ using System.Collections;
 using System.Text;
 using System;
 using TMPro;
+using UnityEngine.UI;
+
 
 public class GeminiClient : MonoBehaviour
 {
     public TMP_Text outputText;
     public PollinationsAI pollinationsAI;
     int textIndex = 0;
+    public GameObject imageObject;
 
     // Replace with your actual API key
     private string apiKey = "AIzaSyAWmxgOX0F_-ie-bJ_gkhJfSB2jEJs4xwM";
@@ -100,12 +103,15 @@ public class GeminiClient : MonoBehaviour
                     //outputText.GetComponent<TextMeshProUGUI>().text = result;
                     outputText.GetComponent<TextMeshProUGUI>().text = imagePrompt[0];
 
+                    //var obj = new GameObject();
+                    //var renderer = obj.AddComponent<SpriteRenderer>();
+                    //renderer.sprite = sprite;
+
                     // Might need to put http timeout in between requests
-                    for (int i = 0; i < 5; i++)
-                    {
-                        pollinationsAI.GenerateImage(imagePrompt[i]);
-                    }
-                    
+                    //for (int i = 0; i < 5; i++)
+                    //{
+                    //    pollinationsAI.GenerateImage(imagePrompt[i]);
+                    //}
                 }
             }
         }
@@ -119,6 +125,8 @@ public class GeminiClient : MonoBehaviour
                 textIndex--;
 
             outputText.GetComponent<TextMeshProUGUI>().text = imagePrompt[textIndex];
+            imageObject.GetComponent<Image>().sprite = pollinationsAI.spriteBank[textIndex];
+            
         }
 
         if (Input.GetKeyDown(KeyCode.P))
@@ -127,6 +135,7 @@ public class GeminiClient : MonoBehaviour
                 textIndex++;
 
             outputText.GetComponent<TextMeshProUGUI>().text = imagePrompt[textIndex];
+            imageObject.GetComponent<Image>().sprite = pollinationsAI.spriteBank[textIndex];
         }
     }
 }

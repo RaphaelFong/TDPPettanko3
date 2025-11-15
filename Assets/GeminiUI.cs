@@ -104,6 +104,15 @@ public class GeminiUI : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Space))
         {
+            // Dynamically Create image
+            Canvas canvas = FindObjectOfType<Canvas>();
+            GameObject imageObject = new GameObject("GeneratedImage");
+            Image image = imageObject.AddComponent<Image>();
+            imageObject.transform.SetParent(canvas.transform, false);
+            imageObject.GetComponent<RectTransform>().sizeDelta = new Vector2(100, 100);
+            imageObject.GetComponent<RectTransform>().anchoredPosition = Vector2.zero;
+            imageObject.SetActive(false);
+
             toneLayer = toneDropdown.options[toneDropdown.value].text;
 
             Debug.Log("Sending Prompt..");
