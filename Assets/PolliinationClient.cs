@@ -11,25 +11,40 @@ public class PollinationsAI : MonoBehaviour
     public int counter = 0;
     public List<Sprite> spriteBank; // bank to store all the images generated from Pollination
 
+    [Header("Settings")]
+    [Tooltip("Image width for generation")]
+    public int imageWidth = 1920;
+
+    [Tooltip("Image height for generation")]
+    public int imageHeight = 1080;
+
     private void Start()
     {
         spriteBank = new List<Sprite>();
-        // Example usage
-        //GenerateImage("Moonlight loli");
     }
 
+    /// <summary>
+    /// Public method to start image generation
+    /// </summary>
     public void GenerateImage(string prompt)
     {
         StartCoroutine(GenerateImageCoroutine(prompt));
     }
 
+    /// <summary>
+    /// Made public so it can be yielded from other coroutines
+    /// This allows sequential generation with yield return
+    /// </summary>
     public IEnumerator GenerateImageCoroutine(string prompt)
     {
         // Format the API URL with your prompt
-        string apiUrl = $"https://image.pollinations.ai/prompt/{UnityWebRequest.EscapeURL(prompt)}?width=1920&height=1080";
+        string apiUrl = $"https://image.pollinations.ai/prompt/{UnityWebRequest.EscapeURL(prompt)}?width={imageWidth}&height={imageHeight}";
+
+        Debug.Log($"Requesting image from Pollinations: {prompt}");
 
         using (UnityWebRequest webRequest = UnityWebRequestTexture.GetTexture(apiUrl))
         {
+            // Send the request and wait for it to complete
             yield return webRequest.SendWebRequest();
 
             if (webRequest.result == UnityWebRequest.Result.Success)
@@ -44,6 +59,7 @@ public class PollinationsAI : MonoBehaviour
                 );
 
                 spriteBank.Add(sprite);
+                Debug.Log($"Image generated successfully! Total images: {spriteBank.Count}");
             }
             else
             {
@@ -54,5 +70,14 @@ public class PollinationsAI : MonoBehaviour
                 spriteBank.Add(null);
             }
         }
+    }
+
+    /// <summary>
+    /// Clear all generated images
+    /// </summary>
+    public void ClearSpriteBank()
+    {
+        spriteBank.Clear();
+        counter = 0;
     }
 }
