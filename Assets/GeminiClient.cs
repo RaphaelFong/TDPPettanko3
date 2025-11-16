@@ -110,8 +110,23 @@ public class GeminiClient : MonoBehaviour
                     string result = resp.candidates[0].content.parts[0].text;
                     Debug.Log("Result text: " + result);
 
+                    string fileName = "GeneratedStory_" + System.DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss") + ".txt";
+                    string filePath = System.IO.Path.Combine(Application.persistentDataPath, fileName);
+
+                    try
+                    {
+                        System.IO.File.WriteAllText(filePath, result);
+                        Debug.Log($"Story saved to: {filePath}");
+                        LoadingScreen.SetServerMessage($"Story saved!");
+                    }
+                    catch (System.Exception e)
+                    {
+                        Debug.LogError($"Failed to save story: {e.Message}");
+                    }
+
                     // Split result
                     imagePrompt = result.Split(';');
+                    imagePrompt[imagePrompt.Length - 1] = "End of story"; // Need this to avoid empty last entry
 
                     // Display first paragraph
                     textIndex = 0;
@@ -207,6 +222,60 @@ public class GeminiClient : MonoBehaviour
         }
     }
 
+    public void PrevPage()
+    {
+        if (textIndex > 0)
+        {
+            textIndex--;
+            UpdateDisplay();
+        }
+    }
+    public void NextPage()
+    {
+        if (textIndex < imagePrompt.Length - 1)
+        {
+            textIndex++;
+            UpdateDisplay();
+        }
+    }
+
+    public void ResetAll()
+    {
+        // Clear generated text data
+        imagePrompt = null;
+        textIndex = 0;
+
+        // Clear text display
+        if (outputText != null)
+        {
+            outputText.text = "";
+        }
+
+        // Clear image display
+        if (imageObject != null)
+        {
+            Image img = imageObject.GetComponent<Image>();
+            if (img != null)
+            {
+                img.sprite = null;
+            }
+        }
+
+        // Clear generated images
+        if (pollinationsAI != null)
+        {
+            pollinationsAI.ClearSpriteBank();
+        }
+
+        // Reset timeline
+        if (storyTimeline != null)
+        {
+            storyTimeline.InitializeTimeline(0);
+        }
+
+        Debug.Log("All content has been reset!");
+    }
+
     public void Update()
     {
         if (imagePrompt == null || imagePrompt.Length == 0)
@@ -215,21 +284,23 @@ public class GeminiClient : MonoBehaviour
         // Previous chapter (O key)
         if (Input.GetKeyDown(KeyCode.LeftArrow))
         {
-            if (textIndex > 0)
-            {
-                textIndex--;
-                UpdateDisplay();
-            }
+            PrevPage();
+            //if (textIndex > 0)
+            //{
+            //    textIndex--;
+            //    UpdateDisplay();
+            //}
         }
 
         // Next chapter (P key)
         if (Input.GetKeyDown(KeyCode.RightArrow))
         {
-            if (textIndex < imagePrompt.Length - 1)
-            {
-                textIndex++;
-                UpdateDisplay();
-            }
+            NextPage();
+            //if (textIndex < imagePrompt.Length - 1)
+            //{
+            //    textIndex++;
+            //    UpdateDisplay();
+            //}
         }
     }
 }

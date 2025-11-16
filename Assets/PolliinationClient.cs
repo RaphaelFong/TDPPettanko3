@@ -10,6 +10,7 @@ public class PollinationsAI : MonoBehaviour
     public Image[] outputImage;
     public int counter = 0;
     public List<Sprite> spriteBank;
+    public Sprite placeholderSprite;
 
     [Header("Settings")]
     [Tooltip("Image width for generation")]
@@ -48,7 +49,7 @@ public class PollinationsAI : MonoBehaviour
     {
         int attemptCount = 0;
         bool success = false;
-        Sprite generatedSprite = null;
+        Sprite generatedSprite = placeholderSprite;
 
         // Try up to maxRetries times
         while (attemptCount < maxRetries && !success)
